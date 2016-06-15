@@ -25,11 +25,8 @@ SOFTWARE.
 package httpmpc
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
-	"strconv"
 )
 
 //ListenAndServe starts the listening process
@@ -100,34 +97,4 @@ func (hmc *HTTPMpc) hListOutputs(w http.ResponseWriter, r *http.Request) {
 }
 func (hmc *HTTPMpc) hListPlaylists(w http.ResponseWriter, r *http.Request) {
 	hmc.attrsSlice(w, r, hmc.mpd.ListPlaylists)
-}
-
-func (hmc *HTTPMpc) hPlaylistInfo(w http.ResponseWriter, r *http.Request) {
-	hmc.mutex.Lock()
-	defer hmc.mutex.Unlock()
-	start := int64(-1)
-	end := int64(-1)
-	var err error
-	vars := mux.Vars(r)
-	if s, ok := vars["start"]; ok {
-		if start, err = strconv.ParseInt(s, 10, 32); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	}
-	if s, ok := vars["stop"]; ok {
-		if end, err = strconv.ParseInt(s, 10, 32); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	}
-	if st, err := hmc.mpd.PlaylistInfo(int(start), int(end)); err == nil {
-		b, err := json.Marshal(st)
-		if err == nil {
-			w.WriteHeader(http.StatusOK)
-			w.Write(b)
-			return
-		}
-	}
-	w.WriteHeader(http.StatusInternalServerError)
 }

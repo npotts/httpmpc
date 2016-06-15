@@ -70,7 +70,11 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	//other attr handlers
 	router.HandleFunc("/listoutputs", hmc.hListOutputs).Methods("GET")
 	router.HandleFunc("/listplaylists", hmc.hListPlaylists).Methods("GET")
-	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:[[-]{0,1}[0-9]+}", "end", "{end:[[-]{0,1}[0-9]+}").Methods("GET")
+
+	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Methods("GET")
+	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}").Methods("GET")
+	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
+	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}", "end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
 
 	hmc.router = router
 
@@ -137,7 +141,7 @@ func (hmc *HTTPMpc) attrs(w http.ResponseWriter, r *http.Request, exec func() (m
 	hmc.mutex.Lock()
 	defer hmc.mutex.Unlock()
 	if st, err := exec(); err == nil {
-		b, err := json.Marshal(st)
+		b, err := json.MarshalIndent(st, "", "  ")
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
 			w.Write(b)
@@ -156,7 +160,7 @@ func (hmc *HTTPMpc) attrsURISlice(w http.ResponseWriter, r *http.Request, exec f
 		return
 	}
 	if st, err := exec(uri); err == nil {
-		b, err := json.Marshal(st)
+		b, err := json.MarshalIndent(st, "", "  ")
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
 			w.Write(b)
@@ -169,7 +173,36 @@ func (hmc *HTTPMpc) attrsSlice(w http.ResponseWriter, r *http.Request, exec func
 	hmc.mutex.Lock()
 	defer hmc.mutex.Unlock()
 	if st, err := exec(); err == nil {
-		b, err := json.Marshal(st)
+		b, err := json.MarshalIndent(st, "", "  ")
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			w.Write(b)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+func (hmc *HTTPMpc) hPlaylistInfo(w http.ResponseWriter, r *http.Request) {
+	hmc.mutex.Lock()
+	defer hmc.mutex.Unlock()
+	start := int64(-1)
+	end := int64(-1)
+	// var err error
+	// vars := mux.Vars(r)
+	// if s, ok := vars["start"]; ok {
+	// 	if start, err = strconv.ParseInt(s, 10, 32); err != nil {
+	// 		w.WriteHeader(http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// }
+	// if s, ok := vars["end"]; ok {
+	// 	if end, err = strconv.ParseInt(s, 10, 32); err != nil {
+	// 		w.WriteHeader(http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// }
+	if st, err := hmc.mpd.PlaylistInfo(int(start), int(end)); err == nil {
+		b, err := json.MarshalIndent(st, "", "  ")
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
 			w.Write(b)
