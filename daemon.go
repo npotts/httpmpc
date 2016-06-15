@@ -63,7 +63,7 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	hmc.router = router
 
 	//Setup HTTP server
-	hmc.mpd, err = mpd.DialAuthenticated("tcp", cfg.MpdDial, cfg.Password)
+	hmc.mpd, err = mpd.DialAuthenticated("tcp", hmc.config.MpdDial, hmc.config.Password)
 	return
 }
 

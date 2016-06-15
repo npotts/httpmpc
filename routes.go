@@ -31,7 +31,9 @@ import (
 
 //ListenAndServe starts the listening process
 func (hmc *HTTPMpc) ListenAndServe() {
-	http.ListenAndServe(fmt.Sprintf(":%d", hmc.config.Port), hmc.router)
+	s := http.ListenAndServe(fmt.Sprintf(":%d", hmc.config.Port), hmc.router)
+	fmt.Println(s)
+
 }
 func (hmc *HTTPMpc) hNext(w http.ResponseWriter, r *http.Request) {
 	hmc.execute(w, r, hmc.mpd.Next)

@@ -22,52 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package httpmpc
+package main
 
 import (
 	"flag"
-	"fmt"
-	"github.com/go-yaml/yaml"
-	"io/ioutil"
-	"os"
+	"github.com/npotts/httpmpc"
 )
 
-type configuration struct {
-	MpdDial  string `yaml:"MPD"`
-	Password string `yaml:"Password"`
-	Port     int    `yaml:"HTTP Port"`
-}
-
-//BaseConfig is the preloaded config
-var BaseConfig = configuration{MpdDial: "localhost:6600", Password: "", Port: 8080}
-
-//if set to a non-empty string, will read from this config file
-var thisfile string
-
-func configHunt() []byte {
-	if thisfile != "" {
-		bytes, err := ioutil.ReadFile(thisfile)
-		if err == nil {
-			return bytes
-		}
-		panic(fmt.Errorf("Unable to read %q: %v", thisfile, err))
+func main() {
+	flag.Parse()
+	hmc, err := httpmpc.New(httpmpc.BaseConfig)
+	if err != nil {
+		panic(err)
 	}
-	for _, file := range []string{".", "$HOME", "/etc/"} {
-		if bytes, err := ioutil.ReadFile(os.ExpandEnv(file)); err == nil {
-			return bytes
-		}
-	}
-	panic(fmt.Errorf("Unable to locate %q", "httpmpc.yml"))
-}
-
-func init() {
-	flag.StringVar(&thisfile, "config", "", "If specified, use this config file")
-}
-
-//Get attempts to read a config from somewhere
-func Get() (c configuration) {
-	if e := yaml.Unmarshal(configHunt(), &c); e != nil {
-		panic(e)
-	}
-	return
+	hmc.ListenAndServe()
 }
