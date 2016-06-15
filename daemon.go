@@ -48,8 +48,6 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	hmc = new(HTTPMpc)
 	hmc.config = cfg
 	router := mux.NewRouter()
-	box := rice.MustFindBox("html")
-	router.Handle("/", http.FileServer(box.HTTPBox()))
 	router.HandleFunc("/next", hmc.hNext).Methods("GET")
 	router.HandleFunc("/previous", hmc.hPrevious).Methods("GET")
 	router.HandleFunc("/ping", hmc.hPing).Methods("GET")
@@ -75,6 +73,13 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}").Methods("GET")
 	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
 	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}", "end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
+
+	css := rice.MustFindBox("css")
+	router.Handle("/css/{path:.*}", http.StripPrefix("/css/", http.FileServer(css.HTTPBox())))
+
+	html := rice.MustFindBox("html")
+	// router.Handle("/", http.StripPrefix("/html/", http.FileServer(html.HTTPBox())))
+	router.Handle("/{path:.*}", http.FileServer(html.HTTPBox()))
 
 	hmc.router = router
 
