@@ -1,0 +1,11 @@
+-- 
+
+#MPD instance, in server:port form.  Standard port is 6600
+MPD: musick:6600
+
+#Password, if required, to connect
+Password:
+
+#Which HTTP port to listen on
+HTTP Port: 8080
+
