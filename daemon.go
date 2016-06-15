@@ -26,11 +26,13 @@ package httpmpc
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/GeertJohan/go.rice"
 	"github.com/fhs/gompd/mpd"
 	"github.com/gorilla/mux"
 	"net/http"
 	"sync"
+	"time"
 )
 
 //HTTPMpc is base class struct
@@ -38,7 +40,7 @@ type HTTPMpc struct {
 	config configuration
 	mpd    *mpd.Client
 	router *mux.Router
-	mutex  *sync.Mutex
+	mutex  sync.Mutex
 }
 
 //New returns a properly configured HttpMpc
@@ -60,11 +62,44 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	router.HandleFunc("/status", hmc.hStatus).Methods("GET")
 	router.HandleFunc("/stats", hmc.hStats).Methods("GET")
 	router.HandleFunc("/currentsong", hmc.hCurrentSong).Methods("GET")
+	//URI handlers
+	router.HandleFunc("/find/{uri:.*}", hmc.hFind).Methods("GET")
+	router.HandleFunc("/listinfo/{uri:.*}", hmc.hListInfo).Methods("GET")
+	router.HandleFunc("/listallinfo/{uri:.*}", hmc.hListAllInfo).Methods("GET")
+	router.HandleFunc("/playlistcontents/{uri:.*}", hmc.hPlaylistContents).Methods("GET")
+	//other attr handlers
+	router.HandleFunc("/listoutputs", hmc.hListOutputs).Methods("GET")
+	router.HandleFunc("/listplaylists", hmc.hListPlaylists).Methods("GET")
+	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:[[-]{0,1}[0-9]+}", "end", "{end:[[-]{0,1}[0-9]+}").Methods("GET")
+
 	hmc.router = router
 
 	//Setup HTTP server
 	hmc.mpd, err = mpd.DialAuthenticated("tcp", hmc.config.MpdDial, hmc.config.Password)
+	if err == nil {
+		go hmc.busy()
+	}
 	return
+}
+
+func (hmc *HTTPMpc) busy() {
+	//ping every 1 sec, attempting a redial if connection fails
+	broken := false
+	for {
+		time.Sleep(time.Millisecond * time.Duration(hmc.config.KeepAlive))
+		hmc.mutex.Lock()
+		if e := hmc.mpd.Ping(); e != nil { //network error  attempt redial
+			if !broken {
+				broken = true
+				fmt.Println("Connection lost")
+			}
+			if hmc.mpd, e = mpd.DialAuthenticated("tcp", hmc.config.MpdDial, hmc.config.Password); e == nil {
+				fmt.Println("Connection re-established")
+				broken = false
+			}
+		}
+		hmc.mutex.Unlock()
+	}
 }
 
 func (hmc *HTTPMpc) execute(w http.ResponseWriter, r *http.Request, exec func() error) {
@@ -104,8 +139,40 @@ func (hmc *HTTPMpc) attrs(w http.ResponseWriter, r *http.Request, exec func() (m
 	if st, err := exec(); err == nil {
 		b, err := json.Marshal(st)
 		if err == nil {
-			w.Write(b)
 			w.WriteHeader(http.StatusOK)
+			w.Write(b)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+func (hmc *HTTPMpc) attrsURISlice(w http.ResponseWriter, r *http.Request, exec func(string) ([]mpd.Attrs, error)) {
+	hmc.mutex.Lock()
+	defer hmc.mutex.Unlock()
+	vars := mux.Vars(r)
+	uri, ok := vars["uri"]
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if st, err := exec(uri); err == nil {
+		b, err := json.Marshal(st)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			w.Write(b)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+func (hmc *HTTPMpc) attrsSlice(w http.ResponseWriter, r *http.Request, exec func() ([]mpd.Attrs, error)) {
+	hmc.mutex.Lock()
+	defer hmc.mutex.Unlock()
+	if st, err := exec(); err == nil {
+		b, err := json.Marshal(st)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			w.Write(b)
 			return
 		}
 	}

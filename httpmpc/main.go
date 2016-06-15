@@ -31,7 +31,8 @@ import (
 
 func main() {
 	flag.Parse()
-	hmc, err := httpmpc.New(httpmpc.BaseConfig)
+	cfg := httpmpc.Get()
+	hmc, err := httpmpc.New(cfg)
 	if err != nil {
 		panic(err)
 	}

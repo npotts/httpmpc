@@ -33,9 +33,10 @@ import (
 )
 
 type configuration struct {
-	MpdDial  string `yaml:"MPD"`
-	Password string `yaml:"Password"`
-	Port     int    `yaml:"HTTP Port"`
+	MpdDial   string `yaml:"MPD"`
+	Password  string `yaml:"Password"`
+	Port      int    `yaml:"HTTP Port"`
+	KeepAlive int    `yaml:"Keep Alive"`
 }
 
 //BaseConfig is the preloaded config
@@ -52,8 +53,10 @@ func configHunt() []byte {
 		}
 		panic(fmt.Errorf("Unable to read %q: %v", thisfile, err))
 	}
-	for _, file := range []string{".", "$HOME", "/etc/"} {
-		if bytes, err := ioutil.ReadFile(os.ExpandEnv(file)); err == nil {
+	for _, file := range []string{"", "$HOME/.", "/etc/"} {
+		file = os.ExpandEnv(file) + "httpmpc.yml"
+		if bytes, err := ioutil.ReadFile(file); err == nil {
+			fmt.Printf("Using config file %q\n", file)
 			return bytes
 		}
 	}
