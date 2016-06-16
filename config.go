@@ -40,7 +40,7 @@ type configuration struct {
 }
 
 //BaseConfig is the preloaded config
-var BaseConfig = configuration{MpdDial: "localhost:6600", Password: "", Port: 8080}
+var BaseConfig = configuration{MpdDial: "localhost:6600", Password: "", Port: 8080, KeepAlive: 1000}
 
 //if set to a non-empty string, will read from this config file
 var thisfile string
