@@ -27,7 +27,7 @@ package httpmpc
 import (
 	"flag"
 	"fmt"
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 )
