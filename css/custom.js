@@ -61,10 +61,10 @@
 
 })();
 
-$("#play").click(loadQueue);
+$("#play").click(load);
 // $( document ).ready( loadQueue )
 
-function loadQueue() {
+function load() {
   // /playlistinfo
   $.getJSON( "/playlistinfo", function( data ) {
     var items = [];
