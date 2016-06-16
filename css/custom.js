@@ -60,3 +60,26 @@
   }
 
 })();
+
+$("#play").click(loadQueue);
+// $( document ).ready( loadQueue )
+
+function loadQueue() {
+  // /playlistinfo
+  $.getJSON( "/playlistinfo", function( data ) {
+    var items = [];
+    $("#queue").html("<thead><tr><th>ID</th><th>Track</th><th>Title</th><th>Artist</th><th>Album</th><th>Length</th></tr></thead>");
+    $.each( data, function( key, val ) {
+      $("#queue").append("<tr><td>" + key + "</td><td>" + val.Track + "</td><td>" + val.Title + "</td><td>" + val.Artist + "</td><td>" + val.Album + "</td><td>" + val.Time + "</td></tr>\n")
+    });
+  });
+
+  $.getJSON( "/listplaylists", function( data ) {
+    var items = [];
+    $("#playlists").html("");
+    $.each( data, function( key, val ) {
+      $("#playlists").append("<tr><td>" + val.playlist + "</td></tr>\n");
+    });
+  });
+
+}
