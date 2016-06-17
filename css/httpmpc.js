@@ -7,6 +7,7 @@ $( document ).ready( function () { tickMaster(); ticktock = setInterval(tickMast
 $( document ).ready( browseTo("") );
 $( document ).ready( function () { $("#music tr").click(musicDecend);});
 $( document ).ready( function () { $("#home").click(musicDecend);});
+$( document ).ready( function () { $("#updir").click(musicDecend);});
 
 function tickMaster() {
   tickStatus()
@@ -97,10 +98,10 @@ function browseTo(path) {
     $.each( data, function( id, val ) {
       if ("directory" in val) {
         //
-        $("#music").append("<tr><td><span class=\"ion-plus-circled\"></span>&nbsp;<span class=\"ion-folder\"></span><span>" + val.directory + "</span></td></tr>\n");
+        $("#music").append("<tr><td><span class=\"ion-plus-circled\"></span>&nbsp;<span class=\"ion-folder\"></span>&nbsp;<span>" + val.directory + "</span></td></tr>\n");
       }
       if ("file" in val) {
-        $("#music").append("<tr><td></span>&nbsp;<span class=\"ion-music-note\">&nbsp;><span>" + val.file + "</span></td></tr>\n");
+        $("#music").append("<tr><td><span class=\"ion-music-note\"></span>&nbsp;<span>" + val.file + "</span></td></tr>\n");
       }
     });
     $("#music span").click(musicDecend);
@@ -109,45 +110,20 @@ function browseTo(path) {
 
 function musicDecend(path) {
   //figure out what they clicked on:
-  // - the + button
-  //   either add whole directory, or single file
-  if ($(this).attr('id') == "home") { 
-    browseTo("") 
-    return
-  }
-  if ($(this).attr('id') == "updir") {
-    console.log("updir")
-    browseTo("") 
-    return
-  }
+  if ($(this).attr('id') == "home") { browseTo(""); return; }
+  if ($(this).attr('id') == "updir") {if ($("#path").html() != "") {sp = $("#path").html().split("/"); sp.splice(sp.length-1, 1);browseTo(sp.join("/"));}return;}
   if ($(this).attr("class") == "ion-plus-circled"){
-    var uri = "/" + $(this).next().html()
-    console.log("Adding Dir: " + uri)
-    return
-  }
-  if ($(this).attr("class") == "ion-folder") {
-    console.log("Decending")
+    var uri = $(this).next().next().html();
+    $.post("/add/" + uri);
+    console.log("Adding Dir: " + uri);
+    return;
+  } //adding a subdir
+  if ($(this).attr("class") == "ion-folder") {browseTo($(this).next().html());return;} //clicks to folder icon
+  if ($(this).attr("class") == undefined && $(this).prev().attr("class") == "ion-folder") { //clicks to folder
+    console.log("Decending into: " + $(this).html())
     browseTo($(this).html())
     return
   }
   console.log("Adding file '" + $(this).html() + "'")
-  
-  //- the file/dir name
-  //  either decend into the folder, or add the file
-  //get the folder clicked on
-  // currDir += $(this).html()
-  
-  // console.log("Registering click in music table")
-  // console.log($(this).index())
-  // console.log()
-  // console.dir($(this))
-//   $(document).ready(function(){
-//     $("#myTable td").click(function() {     
- 
-//         var column_num = parseInt( $(this).index() ) + 1;
-//         var row_num = parseInt( $(this).parent().index() )+1;    
- 
-//         $("#result").html( "Row_num =" + row_num + "  ,  Rolumn_num ="+ column_num );   
-//     });
-// });
+  $.post("/add/" + $(this).html());
 }
