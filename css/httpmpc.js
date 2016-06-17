@@ -32,6 +32,7 @@ function humanizeTime(secs) {
 function ctrlBool() {
   handle = $(this).attr("id")
   $.ajax("/" + handle, {method: ($("#" + handle).hasClass("btn-primary")) ? "PUT": "DELETE"});
+  tickStatus()
 }
 
 function tickMaster() {

@@ -82,6 +82,8 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	router.HandleFunc("/disableoutput/{idpos:[-]{0,1}[0-9]*}", hmc.hDisableOutput).Methods("POST")
 	router.HandleFunc("/enableoutput/{idpos:[-]{0,1}[0-9]*}", hmc.hEnableOutput).Methods("POST")
 	router.HandleFunc("/setvolume/{idpos:[-]{0,1}[0-9]*}", hmc.hSetVolume).Methods("POST")
+	//loading playlists
+	router.HandleFunc("/playlistload/{playlist:.*}", hmc.hPlaylistLoad).Methods("POST")
 
 	css := rice.MustFindBox("css")
 	router.Handle("/css/{path:.*}", http.StripPrefix("/css/", http.FileServer(css.HTTPBox())))
@@ -249,6 +251,19 @@ func (hmc *HTTPMpc) hPlaylistInfo(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
 			w.Write(b)
+			return
+		}
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func (hmc *HTTPMpc) hPlaylistLoad(w http.ResponseWriter, r *http.Request) {
+	hmc.mutex.Lock()
+	defer hmc.mutex.Unlock()
+	vars := mux.Vars(r)
+	if playlist, ok := vars["playlist"]; ok {
+		if err := hmc.mpd.PlaylistLoad(playlist, -1, -1); err == nil {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 	}
