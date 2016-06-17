@@ -63,7 +63,7 @@ The 'stock' one is located at $GOPATH/src/github.com/npotts/httpmpc/httpmpc/http
 
 ![Desktop Sized View](Readme.d/desktop.png)
 
-![Mobile View](Readme.d/mobile.png)
+![Mobile View](Readme.d/mobile.jpg)
 
 # License / Author
 This software is Licensed under the MIT License (MIT) and is Copyright (c) 2016 by Nick Potts.
