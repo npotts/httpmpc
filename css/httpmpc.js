@@ -4,7 +4,7 @@ var songId = -1
 var currDir = "/"
 
 $( document ).ready( function () { tickMaster(); ticktock = setInterval(tickMaster, 1000);});
-$( document ).ready( browseTo("/") );
+$( document ).ready( browseTo("") );
 $( document ).ready( function () { $("#music tr").click(musicDecend);});
 $( document ).ready( function () { $("#home").click(musicDecend);});
 
@@ -92,15 +92,15 @@ function tickPlaylists() {
 
 function browseTo(path) {
   $.getJSON( "/listinfo/" + path, function( data ) {
-    $("#home").html("&nbsp;" + path);
+    $("#path").html(path);
     $("#music").html("");
     $.each( data, function( id, val ) {
       if ("directory" in val) {
         //
-        $("#music").append("<tr><td><span class=\"ion-plus-circled\"></span>&nbsp;<span class=\"ion-folder\">&nbsp;" + val.directory + "</span></td></tr>\n");
+        $("#music").append("<tr><td><span class=\"ion-plus-circled\"></span>&nbsp;<span class=\"ion-folder\"></span><span>" + val.directory + "</span></td></tr>\n");
       }
       if ("file" in val) {
-        $("#music").append("<tr><td></span>&nbsp;<span class=\"ion-music-note\">&nbsp;" + val.file + "</span></td></tr>\n");
+        $("#music").append("<tr><td></span>&nbsp;<span class=\"ion-music-note\">&nbsp;><span>" + val.file + "</span></td></tr>\n");
       }
     });
     $("#music span").click(musicDecend);
@@ -112,25 +112,25 @@ function musicDecend(path) {
   // - the + button
   //   either add whole directory, or single file
   if ($(this).attr('id') == "home") { 
-    browseTo("/") 
+    browseTo("") 
+    return
+  }
+  if ($(this).attr('id') == "updir") {
+    console.log("updir")
+    browseTo("") 
     return
   }
   if ($(this).attr("class") == "ion-plus-circled"){
-    var sibling = $(this).next()
-    var child = $(sibling).children()
-    console.dir(sibling)
-    console.dir(child)
-    var cousin = $(sibling).find("span")
-    console.log("Adding")
-    
+    var uri = "/" + $(this).next().html()
+    console.log("Adding Dir: " + uri)
     return
   }
   if ($(this).attr("class") == "ion-folder") {
     console.log("Decending")
-    browseTo($(this).html().replace("&nbsp;",""))
+    browseTo($(this).html())
     return
   }
-  console.log("Adding file '" + $(this).html().replace("&nbsp;","") + "'")
+  console.log("Adding file '" + $(this).html() + "'")
   
   //- the file/dir name
   //  either decend into the folder, or add the file
