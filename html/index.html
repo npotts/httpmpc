@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8">
     <title>HttpMpc</title>
-    <meta http-equiv="refresh" content="200">
     <meta name="viewport" content="width=device-width, initial-scale=3">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="stylesheet" href="css/bootstrap.css" media="screen">
     <link rel="stylesheet" href="css/custom.min.css">
     <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA/4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAEQAAAREQAAEREAAAERAAABEQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAEAAQAAAAEAEBABAAAAAQEAAQEAAAABEAAAEQAAAAEAAAABAACfnwAADw8AAI+PAADv7wAA7+8AAO/vAADv7wAA7+8AAO/vAADv7wAA7+8AAO7vAADtbwAA668AAOfPAADv7wAA" rel="icon" type="image/x-icon" />
   </head>
   <body>
     <div class="navbar navbar-default navbar-fixed-top">
@@ -43,24 +43,11 @@
         </div>
         <div class="row">
           <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-            <h3>Playlists</h3>
-            <div>
-              <table class="table table-hover" id="playlists">
-                  <tr><td>Radiohead</td></tr>
-                  <tr><td>Arcade Fire</td></tr>
-              </table>
-            </div>
+          <h3>Music <span class="ion-home" id="home"></span>&nbsp;<span class="ion-arrow-up-c" id="updir"></span>&nbsp;/<span id="path"></span></h3>
+            <div><table class="table table-hover" id="music"></table></div>
           </div>
           <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-            <h3>Music <span class="ion-home" id="home"></span>&nbsp;<span class="ion-arrow-up-c" id="updir"></span>&nbsp;/<span id="path"></span></h3>
-            <!-- <span class="ion-folder" id="musicpos">Arcade File/Suburbs</span> -->
-            <div>
-              <table class="table table-hover" id="music">
-                <!-- <thead><tr><td><span class="ion-folder" id="musicpos">Arcade File/Suburbs</span></td></tr></thead>
-                  <tr><td>Suburbs</td></tr>
-                  <tr><td>Reflector</td></tr> -->
-              </table>
-            </div>
+            <h3>Playlists</h3><div><table class="table table-hover" id="playlists"></table></div>
           </div>
         </div>
       </div>

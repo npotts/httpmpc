@@ -1,4 +1,3 @@
-// $("#play").click(load);
 var ticktock
 
 $( document ).ready( function () { tickMaster(); ticktock = setInterval(tickMaster, 1000);});
@@ -17,6 +16,7 @@ $( document ).ready( function () { $("#consume").click(ctrlBool) });
 $( document ).ready( function () { $("#repeat").click(ctrlBool) });
 $( document ).ready( function () { $("#random").click(ctrlBool) });
 $( document ).ready( function () { $("#single").click(ctrlBool) });
+
 
 function humanizeTime(secs) {
   secs = parseInt(secs)
@@ -47,7 +47,9 @@ function tickStatus() {
       if (val in data) {
         $(document.getElementById(val)).removeClass("btn-warning").removeClass("btn-primary").removeClass("btn-info").addClass( (data[val] == 1) ? "btn-info" : "btn-primary");} });
     if ("state" in data) {
-      if ("time" in data && data.state == "play") { times = data.time.split(":"); $("#progress").attr("style", "width:" + 100*parseInt(times[0])/parseInt(times[1]) + "%") }; //progress bar
+      if ("time" in data && data.state == "play" && "elapsed" in data) {
+       $("#progress").attr("style", "width:" + 100*parseFloat(data.elapsed)/parseInt(data.time.split(":")[1]) + "%")
+      };
       $("#pause").removeClass("btn-info").removeClass("btn-primary").addClass((data.state == "pause") ? "btn-info": "btn-primary");
     }
   });
@@ -79,6 +81,13 @@ function tickPlaylists() {
     $("#playlists").html("");
     $.each( data, function( key, val ) {
       $("#playlists").append("<tr><td>" + val.playlist + "</td></tr>\n");
+    });
+
+    
+    $("#playlists tr td").click(function() {
+      var uri = "/playlistload/" + $(this).html()
+      console.log(uri)
+      $.post(uri, {always:tickMaster});
     });
   });
 }
