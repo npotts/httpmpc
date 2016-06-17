@@ -1,18 +1,27 @@
 // $("#play").click(load);
 var ticktock
-var songId = -1
-var currDir = "/"
 
 $( document ).ready( function () { tickMaster(); ticktock = setInterval(tickMaster, 1000);});
 $( document ).ready( browseTo("") );
 $( document ).ready( function () { $("#music tr").click(musicDecend);});
 $( document ).ready( function () { $("#home").click(musicDecend);});
 $( document ).ready( function () { $("#updir").click(musicDecend);});
+//button wiring
+$( document ).ready( function () { $("#play").click(function() {$.post("/play/-1");})});
+// $( document ).ready( function () { $("#pause").click(function() {$.post("/play/-1");})});
+$( document ).ready( function () { $("#stop").click(function() {$.post("/stop");})});
+$( document ).ready( function () { $("#previous").click(function() {$.post("/previous");})});
+$( document ).ready( function () { $("#next").click(function() {$.post("/next");})});
+$( document ).ready( function () { $("#clear").click(function() {$.post("/clear");})});
+// $( document ).ready( function () { $("#consume").click(function() {$.post("/play/-1");})});
+// $( document ).ready( function () { $("#repeat").click(function() {$.post("/play/-1");})});
+// $( document ).ready( function () { $("#random").click(function() {$.post("/play/-1");})});
+// $( document ).ready( function () { $("#single").click(function() {$.post("/play/-1");})});
+
 
 function tickMaster() {
   tickStatus()
   tickCurrentSong()
-  tickPlaylistInfo()
   tickPlaylists()
 }
 
@@ -43,10 +52,11 @@ function tickCurrentSong() {
     if ("Artist" in data && "Title" in data) {
       $("title").html("HttpMpc :: " + data.Artist + " - " + data.Title)
     }
-    songId = -1
+    var songid = -1
     if ("Id" in data) {
       songid = data.Id;
     }
+    tickPlaylistInfo(songid)
   });
 }
 
@@ -69,11 +79,11 @@ function humanizeTime(secs) {
   return rtn
 }
 
-function tickPlaylistInfo() {
+function tickPlaylistInfo(songid) {
   $.getJSON( "/playlistinfo", function( data ) {
     $("#queue").html("<thead><tr><th>ID</th><th>Track</th><th>Title</th><th>Artist</th><th>Album</th><th>Length</th></tr></thead>");
     $.each( data, function( key, val ) {
-      if (val.Id == songid) {
+      if (songid != undefined && val.Id == songid) {
         $("#queue").append("<tr class='info'><td>" + val.Id + "</td><td>" + parseInt(val.Track) + "</td><td>" + val.Title + "</td><td>" + val.Artist + "</td><td>" + val.Album + "</td><td>" + humanizeTime(val.Time) + "</td></tr>\n")
       } else {
         $("#queue").append("<tr><td>" + val.Id + "</td><td>" + parseInt(val.Track) + "</td><td>" + val.Title + "</td><td>" + val.Artist + "</td><td>" + val.Album + "</td><td>" + humanizeTime(val.Time) + "</td></tr>\n")
