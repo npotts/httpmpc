@@ -8,15 +8,15 @@ $( document ).ready( function () { $("#home").click(musicDecend);});
 $( document ).ready( function () { $("#updir").click(musicDecend);});
 //button wiring
 $( document ).ready( function () { $("#play").click(function() {$.post("/play/-1");})});
-// $( document ).ready( function () { $("#pause").click(function() {$.post("/play/-1");})});
+$( document ).ready( function () { $("#pause").click(ctrlBool) });
 $( document ).ready( function () { $("#stop").click(function() {$.post("/stop");})});
 $( document ).ready( function () { $("#previous").click(function() {$.post("/previous");})});
 $( document ).ready( function () { $("#next").click(function() {$.post("/next");})});
 $( document ).ready( function () { $("#clear").click(function() {$.post("/clear");})});
-// $( document ).ready( function () { $("#consume").click(function() {$.post("/play/-1");})});
-// $( document ).ready( function () { $("#repeat").click(function() {$.post("/play/-1");})});
-// $( document ).ready( function () { $("#random").click(function() {$.post("/play/-1");})});
-// $( document ).ready( function () { $("#single").click(function() {$.post("/play/-1");})});
+$( document ).ready( function () { $("#consume").click(ctrlBool) });
+$( document ).ready( function () { $("#repeat").click(ctrlBool) });
+$( document ).ready( function () { $("#random").click(ctrlBool) });
+$( document ).ready( function () { $("#single").click(ctrlBool) });
 
 function humanizeTime(secs) {
   secs = parseInt(secs)
@@ -37,6 +37,11 @@ function humanizeTime(secs) {
   return rtn
 }
 
+function ctrlBool() {
+  handle = $(this).attr("id")
+  $.ajax("/" + handle, {method: ($("#" + handle).hasClass("btn-primary")) ? "PUT": "DELETE"});
+}
+
 function tickMaster() {
   tickStatus()
   tickCurrentSong()
@@ -47,30 +52,18 @@ function tickStatus() {
   $.getJSON( "/status", function( data ) {
     $.each( ["consume", "repeat", "random", "single"], function(i, val) {
       if (val in data) {
-        var item = $(document.getElementById(val))
-        item.removeClass("btn-warning");
-        item.removeClass("btn-primary");
-        item.removeClass("btn-info");
-        item.addClass( (data[val] == 1) ? "btn-primary" : "btn-info");
-      }
-    });
-    if ("state" in data && "time" in data && data.state == "play") {
-      times = data.time.split(":")
-      $("#progress").attr("style", "width:" + 100*parseInt(times[0])/parseInt(times[1]) + "%")
+        $(document.getElementById(val)).removeClass("btn-warning").removeClass("btn-primary").removeClass("btn-info").addClass( (data[val] == 1) ? "btn-info" : "btn-primary");} });
+    if ("state" in data) {
+      if ("time" in data && data.state == "play") { times = data.time.split(":"); $("#progress").attr("style", "width:" + 100*parseInt(times[0])/parseInt(times[1]) + "%") }; //progress bar
+      $("#pause").removeClass("btn-info").removeClass("btn-primary").addClass((data.state == "pause") ? "btn-info": "btn-primary");
     }
   });
 }
 
 function tickCurrentSong() {
   $.getJSON( "/currentsong", function( data ) {
-    if ("Artist" in data && "Title" in data) {
-      $("title").html("HttpMpc :: " + data.Artist + " - " + data.Title)
-    }
-    var songid = -1
-    if ("Id" in data) {
-      songid = data.Id;
-    }
-    tickPlaylistInfo(songid)
+    if ("Artist" in data && "Title" in data) { $("title").html("HttpMpc :: " + data.Artist + " - " + data.Title) }
+    if ("Id" in data) { tickPlaylistInfo(data.Id) } else { tickPlaylistInfo(-1) }
   });
 }
 function tickPlaylistInfo(songid) {
