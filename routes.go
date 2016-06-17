@@ -47,6 +47,9 @@ func (hmc *HTTPMpc) hPing(w http.ResponseWriter, r *http.Request) {
 func (hmc *HTTPMpc) hStop(w http.ResponseWriter, r *http.Request) {
 	hmc.execute(w, r, hmc.mpd.Stop)
 }
+func (hmc *HTTPMpc) hClear(w http.ResponseWriter, r *http.Request) {
+	hmc.execute(w, r, hmc.mpd.Clear)
+}
 
 //The next few routes are boolean functions
 
@@ -108,6 +111,21 @@ func (hmc *HTTPMpc) hPlaylistClear(w http.ResponseWriter, r *http.Request) {
 func (hmc *HTTPMpc) hPlaylistRemove(w http.ResponseWriter, r *http.Request) {
 	hmc.uri(w, r, hmc.mpd.PlaylistRemove)
 }
+
 func (hmc *HTTPMpc) hPlaylistSave(w http.ResponseWriter, r *http.Request) {
 	hmc.uri(w, r, hmc.mpd.PlaylistSave)
+}
+
+//func(int)error responses
+func (hmc *HTTPMpc) hDeleteID(w http.ResponseWriter, r *http.Request) { hmc.int(w, r, hmc.mpd.DeleteID) }
+func (hmc *HTTPMpc) hPlay(w http.ResponseWriter, r *http.Request)     { hmc.int(w, r, hmc.mpd.Play) }
+func (hmc *HTTPMpc) hPlayID(w http.ResponseWriter, r *http.Request)   { hmc.int(w, r, hmc.mpd.PlayID) }
+func (hmc *HTTPMpc) hDisableOutput(w http.ResponseWriter, r *http.Request) {
+	hmc.int(w, r, hmc.mpd.DisableOutput)
+}
+func (hmc *HTTPMpc) hEnableOutput(w http.ResponseWriter, r *http.Request) {
+	hmc.int(w, r, hmc.mpd.EnableOutput)
+}
+func (hmc *HTTPMpc) hSetVolume(w http.ResponseWriter, r *http.Request) {
+	hmc.int(w, r, hmc.mpd.SetVolume)
 }

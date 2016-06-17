@@ -31,6 +31,7 @@ import (
 	"github.com/fhs/gompd/mpd"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -48,10 +49,11 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	hmc = new(HTTPMpc)
 	hmc.config = cfg
 	router := mux.NewRouter()
-	router.HandleFunc("/next", hmc.hNext).Methods("GET")
-	router.HandleFunc("/previous", hmc.hPrevious).Methods("GET")
+	router.HandleFunc("/next", hmc.hNext).Methods("POST")
+	router.HandleFunc("/previous", hmc.hPrevious).Methods("POST")
 	router.HandleFunc("/ping", hmc.hPing).Methods("GET")
-	router.HandleFunc("/stop", hmc.hStop).Methods("GET")
+	router.HandleFunc("/stop", hmc.hStop).Methods("POST")
+	router.HandleFunc("/clear", hmc.hClear).Methods("POST")
 	router.HandleFunc("/consume", hmc.hConsume).Methods("PUT", "DELETE")
 	router.HandleFunc("/pause", hmc.hPause).Methods("PUT", "DELETE")
 	router.HandleFunc("/random", hmc.hRandom).Methods("PUT", "DELETE")
@@ -68,16 +70,18 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	//other attr handlers
 	router.HandleFunc("/listoutputs", hmc.hListOutputs).Methods("GET")
 	router.HandleFunc("/listplaylists", hmc.hListPlaylists).Methods("GET")
-
 	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Methods("GET")
-	// router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}").Methods("GET")
-	// router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
-	// router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}", "end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
-
 	router.HandleFunc("/add/{uri:.*}", hmc.hAdd).Methods("POST")
 	router.HandleFunc("/playlistclear/{uri:.*}", hmc.hPlaylistClear).Methods("POST")
 	router.HandleFunc("/playlistremove/{uri:.*}", hmc.hPlaylistRemove).Methods("POST")
 	router.HandleFunc("/playlistsave/{uri:.*}", hmc.hPlaylistSave).Methods("POST")
+	// func(int) error handlers
+	router.HandleFunc("/deleteid/{idpos:[-]{0,1}[0-9]*}", hmc.hDeleteID).Methods("POST")
+	router.HandleFunc("/play/{idpos:[-]{0,1}[0-9]*}", hmc.hPlay).Methods("POST")
+	router.HandleFunc("/playid/{idpos:[-]{0,1}[0-9]*}", hmc.hPlayID).Methods("POST")
+	router.HandleFunc("/disableoutput/{idpos:[-]{0,1}[0-9]*}", hmc.hDisableOutput).Methods("POST")
+	router.HandleFunc("/enableoutput/{idpos:[-]{0,1}[0-9]*}", hmc.hEnableOutput).Methods("POST")
+	router.HandleFunc("/setvolume/{idpos:[-]{0,1}[0-9]*}", hmc.hSetVolume).Methods("POST")
 
 	css := rice.MustFindBox("css")
 	router.Handle("/css/{path:.*}", http.StripPrefix("/css/", http.FileServer(css.HTTPBox())))
@@ -203,6 +207,20 @@ func (hmc *HTTPMpc) attrsSlice(w http.ResponseWriter, r *http.Request, exec func
 			w.WriteHeader(http.StatusOK)
 			w.Write(b)
 			return
+		}
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+func (hmc *HTTPMpc) int(w http.ResponseWriter, r *http.Request, exec func(int) error) {
+	hmc.mutex.Lock()
+	defer hmc.mutex.Unlock()
+	vars := mux.Vars(r)
+	if idpos, ok := vars["idpos"]; ok {
+		if id, err := strconv.ParseInt(idpos, 10, 16); err == nil {
+			if err := exec(int(id)); err == nil {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
 		}
 	}
 	w.WriteHeader(http.StatusInternalServerError)
