@@ -1,7 +1,12 @@
 // $("#play").click(load);
 var ticktock
+var songId = -1
+var currDir = "/"
 
-$( document ).ready( function () { tickMaster(); ticktock = setInterval(tickMaster, 1000);})
+$( document ).ready( function () { tickMaster(); ticktock = setInterval(tickMaster, 1000);});
+$( document ).ready( browseTo("/") );
+$( document ).ready( function () { $("#music tr").click(musicDecend);});
+$( document ).ready( function () { $("#home").click(musicDecend);});
 
 function tickMaster() {
   tickStatus()
@@ -31,7 +36,7 @@ function tickStatus() {
 }
 
 
-var songId = -1
+
 function tickCurrentSong() {
   $.getJSON( "/currentsong", function( data ) {
     if ("Artist" in data && "Title" in data) {
@@ -39,7 +44,6 @@ function tickCurrentSong() {
     }
     songId = -1
     if ("Id" in data) {
-      console.log(data.Id)
       songid = data.Id;
     }
   });
@@ -86,7 +90,64 @@ function tickPlaylists() {
   });
 }
 
-var currDir = "/"
-function browseTo(subdir) {
+function browseTo(path) {
+  $.getJSON( "/listinfo/" + path, function( data ) {
+    $("#home").html("&nbsp;" + path);
+    $("#music").html("");
+    $.each( data, function( id, val ) {
+      if ("directory" in val) {
+        //
+        $("#music").append("<tr><td><span class=\"ion-plus-circled\"></span>&nbsp;<span class=\"ion-folder\">&nbsp;" + val.directory + "</span></td></tr>\n");
+      }
+      if ("file" in val) {
+        $("#music").append("<tr><td></span>&nbsp;<span class=\"ion-music-note\">&nbsp;" + val.file + "</span></td></tr>\n");
+      }
+    });
+    $("#music span").click(musicDecend);
+  });
+}
 
+function musicDecend(path) {
+  //figure out what they clicked on:
+  // - the + button
+  //   either add whole directory, or single file
+  if ($(this).attr('id') == "home") { 
+    browseTo("/") 
+    return
+  }
+  if ($(this).attr("class") == "ion-plus-circled"){
+    var sibling = $(this).next()
+    var child = $(sibling).children()
+    console.dir(sibling)
+    console.dir(child)
+    var cousin = $(sibling).find("span")
+    console.log("Adding")
+    
+    return
+  }
+  if ($(this).attr("class") == "ion-folder") {
+    console.log("Decending")
+    browseTo($(this).html().replace("&nbsp;",""))
+    return
+  }
+  console.log("Adding file '" + $(this).html().replace("&nbsp;","") + "'")
+  
+  //- the file/dir name
+  //  either decend into the folder, or add the file
+  //get the folder clicked on
+  // currDir += $(this).html()
+  
+  // console.log("Registering click in music table")
+  // console.log($(this).index())
+  // console.log()
+  // console.dir($(this))
+//   $(document).ready(function(){
+//     $("#myTable td").click(function() {     
+ 
+//         var column_num = parseInt( $(this).index() ) + 1;
+//         var row_num = parseInt( $(this).parent().index() )+1;    
+ 
+//         $("#result").html( "Row_num =" + row_num + "  ,  Rolumn_num ="+ column_num );   
+//     });
+// });
 }
