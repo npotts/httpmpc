@@ -20,20 +20,12 @@ $( document ).ready( function () { $("#single").click(ctrlBool) });
 
 function humanizeTime(secs) {
   secs = parseInt(secs)
-  var hours = Math.floor(secs/3600);
-  secs %= 3600;
-  var mins = Math.floor(secs / 60);
-  secs %= 60;
   var rtn = ""
-  if (hours > 0) {
-    rtn += hours + "h" 
-  }
-  if (rtn.length >0 || mins > 0) {
-    rtn += mins + "m"
-  }
-  if (rtn.length > 0 || secs > 0) {
-    rtn += secs + "s"
-  }
+  var hours = Math.floor(secs/3600); secs %= 3600;
+  var mins = Math.floor(secs / 60); secs %= 60;
+  if (hours > 0) { rtn += hours + "h" }
+  if (rtn.length >0 || mins > 0) { rtn += mins + "m" }
+  if (rtn.length > 0 || secs > 0) { rtn += secs + "s" }
   return rtn
 }
 
@@ -66,6 +58,7 @@ function tickCurrentSong() {
     if ("Id" in data) { tickPlaylistInfo(data.Id) } else { tickPlaylistInfo(-1) }
   });
 }
+
 function tickPlaylistInfo(songid) {
   $.getJSON( "/playlistinfo", function( data ) {
     $("#queue").html("<thead><tr><th>Title</th><th>Artist</th><th>Album</th><th>Length</th></tr></thead>");
@@ -74,8 +67,9 @@ function tickPlaylistInfo(songid) {
         $("#queue").append("<tr class='info' sid='" + val.Id + "'><td>" + val.Title + "</td><td>" + val.Artist + "</td><td>" + val.Album + "</td><td>" + humanizeTime(val.Time) + "</td></tr>\n")
       } else {
         $("#queue").append("<tr sid='" + val.Id + "'><td>" + val.Title + "</td><td>" + val.Artist + "</td><td>" + val.Album + "</td><td>" + humanizeTime(val.Time) + "</td></tr>\n")
-      }      
+      }
     });
+    $("#queue tr").click(function() {$.post("/playid/" + $(this).attr("sid"));}); //want to play a song in the queue
   });
 }
 
@@ -100,7 +94,7 @@ function browseTo(path) {
   });
 }
 
-function musicDecend(path) { //figure out what they clicked on
+function musicDecend() { //figure out what they clicked on
   if ($(this).attr('id') == "home") { browseTo(""); return; }
   if ($(this).attr('id') == "updir") {if ($("#path").html() != "") {sp = $("#path").html().split("/"); sp.splice(sp.length-1, 1);browseTo(sp.join("/"));}return;}
   if ($(this).attr("class") == "ion-plus-circled"){ var uri = $(this).next().next().html(); $.post("/add/" + uri); return; } //adding a subdir
