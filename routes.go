@@ -98,3 +98,16 @@ func (hmc *HTTPMpc) hListOutputs(w http.ResponseWriter, r *http.Request) {
 func (hmc *HTTPMpc) hListPlaylists(w http.ResponseWriter, r *http.Request) {
 	hmc.attrsSlice(w, r, hmc.mpd.ListPlaylists)
 }
+
+func (hmc *HTTPMpc) hAdd(w http.ResponseWriter, r *http.Request) {
+	hmc.uri(w, r, hmc.mpd.Add)
+}
+func (hmc *HTTPMpc) hPlaylistClear(w http.ResponseWriter, r *http.Request) {
+	hmc.uri(w, r, hmc.mpd.PlaylistClear)
+}
+func (hmc *HTTPMpc) hPlaylistRemove(w http.ResponseWriter, r *http.Request) {
+	hmc.uri(w, r, hmc.mpd.PlaylistRemove)
+}
+func (hmc *HTTPMpc) hPlaylistSave(w http.ResponseWriter, r *http.Request) {
+	hmc.uri(w, r, hmc.mpd.PlaylistSave)
+}

@@ -70,9 +70,14 @@ func New(cfg configuration) (hmc *HTTPMpc, err error) {
 	router.HandleFunc("/listplaylists", hmc.hListPlaylists).Methods("GET")
 
 	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Methods("GET")
-	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}").Methods("GET")
-	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
-	router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}", "end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
+	// router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}").Methods("GET")
+	// router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
+	// router.HandleFunc("/playlistinfo", hmc.hPlaylistInfo).Queries("start", "{start:{[-]{0,1}[0-9]+}", "end", "{end:{[-]{0,1}[0-9]+}").Methods("GET")
+
+	router.HandleFunc("/add/{uri:.*}", hmc.hAdd).Methods("POST")
+	router.HandleFunc("/playlistclear/{uri:.*}", hmc.hPlaylistClear).Methods("POST")
+	router.HandleFunc("/playlistremove/{uri:.*}", hmc.hPlaylistRemove).Methods("POST")
+	router.HandleFunc("/playlistsave/{uri:.*}", hmc.hPlaylistSave).Methods("POST")
 
 	css := rice.MustFindBox("css")
 	router.Handle("/css/{path:.*}", http.StripPrefix("/css/", http.FileServer(css.HTTPBox())))
@@ -171,6 +176,21 @@ func (hmc *HTTPMpc) attrsURISlice(w http.ResponseWriter, r *http.Request, exec f
 			w.Write(b)
 			return
 		}
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+func (hmc *HTTPMpc) uri(w http.ResponseWriter, r *http.Request, exec func(string) error) {
+	hmc.mutex.Lock()
+	defer hmc.mutex.Unlock()
+	vars := mux.Vars(r)
+	uri, ok := vars["uri"]
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err := exec(uri); err == nil {
+		w.WriteHeader(http.StatusOK)
+		return
 	}
 	w.WriteHeader(http.StatusInternalServerError)
 }
