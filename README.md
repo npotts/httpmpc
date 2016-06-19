@@ -22,10 +22,11 @@ Since this is all written in GoLang this is REALLY straight-forward:
 
     #Installation w/ static binaries - HTML is bundled in with executable
     cp $GOPATH/bin/httpmpc /usr/local/bin
-    cp $GOPATH/src/github.com/npotts/httpmpc/httpmpc/httpmpc.yml /etc
-
-    #edit config file
-    nano/vi/subl /etc/httpmpc.yml
+    httpmpc --help #for CLI opts
+    # -or- Create a config via --default and place it in any of the three locations:
+    #   - "httpmpc.yml" (in current directory)
+    #   - /etc/httpmpc.yml
+    #   - ~/.httpmpc.yml
 
     #start daemon
     httpmpc 
@@ -43,7 +44,7 @@ If you want to cross-compile, you should only need to do something like the foll
 
 # Config file
 
-The 'stock' one is located at $GOPATH/src/github.com/npotts/httpmpc/httpmpc/httpmpc.yml and is dead simple:
+The 'stock' one can be retreved via --default and is not much more than the following:
 ```yml
     --- 
     #MPD instance, in server:port form.  Standard port is 6600
@@ -93,7 +94,6 @@ This software is Licensed under the MIT License (MIT) and is Copyright (c) 2016 
 #TODO / Bugs
 Pull Requests are welcome.  The UI is still ongoing with enhancements, and as that is not my forte, I am more than willing to make and accept edits to make it better.
 
-1. Better handling of config files
 1. UI improvements
 1. Volume Control
 1. Progress bar position control
