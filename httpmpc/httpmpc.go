@@ -25,16 +25,9 @@ SOFTWARE.
 package main
 
 import (
-	"flag"
 	"github.com/npotts/httpmpc"
 )
 
 func main() {
-	flag.Parse()
-	cfg := httpmpc.Get()
-	hmc, err := httpmpc.New(cfg)
-	if err != nil {
-		panic(err)
-	}
-	hmc.ListenAndServe()
+	httpmpc.Parse()
 }

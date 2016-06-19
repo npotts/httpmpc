@@ -39,38 +39,88 @@ type configuration struct {
 	KeepAlive int    `yaml:"Keep Alive"`
 }
 
-//BaseConfig is the preloaded config
-var BaseConfig = configuration{MpdDial: "localhost:6600", Password: "", Port: 8080, KeepAlive: 1000}
+//base is the preloaded config
+var base = configuration{MpdDial: "localhost:6600", Password: "", Port: 8080, KeepAlive: 1000}
 
 //if set to a non-empty string, will read from this config file
 var thisfile string
 
-func configHunt() []byte {
+func getConfig() (c configuration) {
+	c = base
+	bytes := []byte{}
+	var err error
+
 	if thisfile != "" {
-		bytes, err := ioutil.ReadFile(thisfile)
-		if err == nil {
-			return bytes
+		if bytes, err = ioutil.ReadFile(thisfile); err != nil {
+			panic(fmt.Errorf("Unable to read %q: %v", thisfile, err))
 		}
-		panic(fmt.Errorf("Unable to read %q: %v", thisfile, err))
+		if err = yaml.Unmarshal(bytes, &c); err != nil {
+			panic(fmt.Errorf("Unable to parse %q: %v", thisfile, err))
+		}
+		return
 	}
+
 	for _, file := range []string{"", "$HOME/.", "/etc/"} {
 		file = os.ExpandEnv(file) + "httpmpc.yml"
-		if bytes, err := ioutil.ReadFile(file); err == nil {
-			fmt.Printf("Using config file %q\n", file)
-			return bytes
+		if bytes, err = ioutil.ReadFile(file); err != nil {
+			continue
+		}
+		if err := yaml.Unmarshal(bytes, &c); err != nil {
+			fmt.Printf("Unable to parse %q:%v - reverting to default config", file, err)
+			c = base //bad YAML use default
+			continue
+		} else {
+			return //skip file
 		}
 	}
-	panic(fmt.Errorf("Unable to locate %q", "httpmpc.yml"))
+	return
 }
+
+var dflt string
 
 func init() {
 	flag.StringVar(&thisfile, "config", "", "If specified, use this config file")
+	flag.StringVar(&dflt, "default", "", "If specified, writes a default configuration file to the specified file")
+	flag.StringVar(&base.MpdDial, "mpd", "localhost:6600", "Connect to this mpd instance")
+	flag.StringVar(&base.Password, "password", "", "Use this password.  If blank, it will be ignored")
+	flag.IntVar(&base.Port, "http", 8080, "Serve out the HTTP out on this port")
+	flag.IntVar(&base.KeepAlive, "keepalive", 1000, "Ensure communication with the mpd server at least this often")
 }
 
-//Get attempts to read a config from somewhere
-func Get() (c configuration) {
-	if e := yaml.Unmarshal(configHunt(), &c); e != nil {
-		panic(e)
+var cfg = `--- 
+
+#MPD instance, in server:port form.  Standard port is 6600
+MPD: 192.168.42.74:6600
+
+#Password, if required, to connect
+Password:
+
+#Which HTTP port to listen on
+HTTP Port: 8080
+
+#Keep Alive is how long we should wait (in ms)  when polling the MPD server to keep the connection Alive
+Keep Alive: 1000
+`
+
+//Parse parses CLI flags and starts the daemon
+func Parse() {
+	flag.Parse()
+
+	if dflt != "" { //write out default configuration and exit
+		fo, err := os.Create(dflt)
+		if err != nil {
+			panic(err)
+		}
+		fo.WriteString(cfg)
+		fo.Close()
+		return
 	}
-	return
+
+	hmc, err := New(getConfig())
+	fmt.Printf("httpmpc mpd:%q KeepAlive=%dms. HTTP Port:%d\n", hmc.config.MpdDial, hmc.config.KeepAlive, hmc.config.Port)
+	if err != nil {
+		panic(err)
+	}
+
+	hmc.ListenAndServe()
 }
