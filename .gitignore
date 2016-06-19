@@ -18,7 +18,7 @@ _cgo_gotypes.go
 _cgo_export.*
 
 _testmain.go
-
+rice-box.go
 *.exe
 *.test
 *.prof
