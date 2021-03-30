@@ -51,11 +51,7 @@ func (hmc *HTTPMpc) hClear(w http.ResponseWriter, r *http.Request) {
 	hmc.execute(w, r, hmc.mpd.Clear)
 }
 
-//The next few routes are boolean functions
-
-func (hmc *HTTPMpc) hConsume(w http.ResponseWriter, r *http.Request) {
-	hmc.setclear(w, r, hmc.mpd.Consume)
-}
+//The next few routes are boolean functions, that use a CommandList
 func (hmc *HTTPMpc) hPause(w http.ResponseWriter, r *http.Request) {
 	hmc.setclear(w, r, hmc.mpd.Pause)
 }
@@ -65,8 +61,24 @@ func (hmc *HTTPMpc) hRandom(w http.ResponseWriter, r *http.Request) {
 func (hmc *HTTPMpc) hRepeat(w http.ResponseWriter, r *http.Request) {
 	hmc.setclear(w, r, hmc.mpd.Repeat)
 }
+
 func (hmc *HTTPMpc) hSingle(w http.ResponseWriter, r *http.Request) {
-	hmc.setclear(w, r, hmc.mpd.Single)
+	cmdlist := hmc.mpd.BeginCommandList()
+	cmdlist.Single(hmc.methodToBool(r))
+	if err := cmdlist.End(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+func (hmc *HTTPMpc) hConsume(w http.ResponseWriter, r *http.Request) {
+	cmdlist := hmc.mpd.BeginCommandList()
+	cmdlist.Consume(hmc.methodToBool(r))
+	if err := cmdlist.End(); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 //various functions that return attrs
@@ -82,7 +94,7 @@ func (hmc *HTTPMpc) hCurrentSong(w http.ResponseWriter, r *http.Request) {
 
 //attrsURIslice slice items
 func (hmc *HTTPMpc) hFind(w http.ResponseWriter, r *http.Request) {
-	hmc.attrsURISlice(w, r, hmc.mpd.Find)
+	//hmc.attrsURISlice(w, r, hmc.mpd.Find)
 }
 func (hmc *HTTPMpc) hListInfo(w http.ResponseWriter, r *http.Request) {
 	hmc.attrsURISlice(w, r, hmc.mpd.ListInfo)
@@ -117,9 +129,11 @@ func (hmc *HTTPMpc) hPlaylistSave(w http.ResponseWriter, r *http.Request) {
 }
 
 //func(int)error responses
-func (hmc *HTTPMpc) hDeleteID(w http.ResponseWriter, r *http.Request) { hmc.int(w, r, hmc.mpd.DeleteID) }
-func (hmc *HTTPMpc) hPlay(w http.ResponseWriter, r *http.Request)     { hmc.int(w, r, hmc.mpd.Play) }
-func (hmc *HTTPMpc) hPlayID(w http.ResponseWriter, r *http.Request)   { hmc.int(w, r, hmc.mpd.PlayID) }
+func (hmc *HTTPMpc) hDeleteID(w http.ResponseWriter, r *http.Request) {
+	hmc.int(w, r, hmc.mpd.DeleteID)
+}
+func (hmc *HTTPMpc) hPlay(w http.ResponseWriter, r *http.Request)   { hmc.int(w, r, hmc.mpd.Play) }
+func (hmc *HTTPMpc) hPlayID(w http.ResponseWriter, r *http.Request) { hmc.int(w, r, hmc.mpd.PlayID) }
 func (hmc *HTTPMpc) hDisableOutput(w http.ResponseWriter, r *http.Request) {
 	hmc.int(w, r, hmc.mpd.DisableOutput)
 }
