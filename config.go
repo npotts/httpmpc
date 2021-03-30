@@ -27,9 +27,10 @@ package httpmpc
 import (
 	"flag"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 type configuration struct {
@@ -47,15 +48,15 @@ var thisfile string
 
 func getConfig() (c configuration) {
 	c = base
-	bytes := []byte{}
+	var bytes []byte
 	var err error
 
 	if thisfile != "" {
 		if bytes, err = ioutil.ReadFile(thisfile); err != nil {
-			panic(fmt.Errorf("Unable to read %q: %v", thisfile, err))
+			panic(fmt.Errorf("unable to read %q: %v", thisfile, err))
 		}
 		if err = yaml.Unmarshal(bytes, &c); err != nil {
-			panic(fmt.Errorf("Unable to parse %q: %v", thisfile, err))
+			panic(fmt.Errorf("unable to parse %q: %v", thisfile, err))
 		}
 		return
 	}

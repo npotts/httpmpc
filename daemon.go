@@ -27,13 +27,14 @@ package httpmpc
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/GeertJohan/go.rice"
-	"github.com/fhs/gompd/mpd"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	rice "github.com/GeertJohan/go.rice"
+	"github.com/fhs/gompd/v2/mpd"
+	"github.com/gorilla/mux"
 )
 
 //HTTPMpc is base class struct
@@ -133,7 +134,18 @@ func (hmc *HTTPMpc) execute(w http.ResponseWriter, r *http.Request, exec func() 
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
-func (hmc *HTTPMpc) setclear(w http.ResponseWriter, r *http.Request, exec func(bool) error) {
+func (*HTTPMpc) methodToBool(r *http.Request) bool {
+	switch r.Method {
+	case "PUT":
+		return true
+	case "DELETE":
+		return false
+	default:
+		panic("Invalid method")
+	}
+}
+
+func (hmc *HTTPMpc) setclear(w http.ResponseWriter, r *http.Request, exec func(pause bool) error) {
 	hmc.mutex.Lock()
 	defer hmc.mutex.Unlock()
 	var e error
